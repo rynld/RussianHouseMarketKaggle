@@ -10,22 +10,21 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from RussianHouse import RussianHouse
 from sklearn import model_selection, preprocessing
-#import xgboost as xgb
+import xgboost as xgb
 import datetime
 #now = datetime.datetime.now()
 
-train = pd.read_csv('../input/train.csv')
-test = pd.read_csv('../input/test.csv')
-macro = pd.read_csv('../input/macro.csv')
-# train = train.head(1000)
-# test = test.head(1000)
-id_test = test.id
+train = pd.read_csv('input/train.csv')
+test = pd.read_csv('input/test.csv')
+macro = pd.read_csv('input/macro.csv')
 
+id_test = test["id"]
 
 rh = RussianHouse()
 train,test = rh.transform(train,test)
-corr_20 = rh.corr_plot(train, 20, 'price_doc', 10, 10)
-exit()
+
+#corr_20 = rh.corr_plot(train, 20, 'price_doc', 10, 10)
+
 
 #train["timestamp"] = pd.to_datetime(train["timestamp"])
 #train["year"], train["month"], train["day"] = train["timestamp"].dt.year,train["timestamp"].dt.month,train["timestamp"].dt.day
@@ -34,8 +33,9 @@ exit()
 #test["year"], test["month"], test["day"] = test["timestamp"].dt.year,test["timestamp"].dt.month,test["timestamp"].dt.day
 
 y_train = train["price_doc"]
-x_train = train.drop(["id", "timestamp", "price_doc"], axis=1)
-x_test = test.drop(["id", "timestamp"], axis=1)
+train.drop("price_doc",inplace=True,axis=1)
+x_train = train#.drop(["id", "timestamp", "price_doc"], axis=1)
+x_test = test#.drop(["id", "timestamp"], axis=1)
 
 
 xgb_params = {
@@ -52,17 +52,20 @@ dtrain = xgb.DMatrix(x_train, y_train)
 dtest = xgb.DMatrix(x_test)
 
 cv_output = xgb.cv(xgb_params, dtrain, num_boost_round=1000, early_stopping_rounds=20,
-    verbose_eval=50, show_stdv=False)
-cv_output[['train-rmse-mean', 'test-rmse-mean']].plot()
+    verbose_eval=50)
+
+#cv_output[['train-rmse-mean', 'test-rmse-mean']].plot()
+#plt.show()
 
 num_boost_rounds = len(cv_output)
 model = xgb.train(dict(xgb_params, silent=0), dtrain, num_boost_round= num_boost_rounds)
 
-fig, ax = plt.subplots(1, 1, figsize=(8, 13))
-xgb.plot_importance(model, max_num_features=50, height=0.5, ax=ax)
+# fig, ax = plt.subplots(1, 1, figsize=(8, 13))
+# xgb.plot_importance(model, max_num_features=50, height=0.5, ax=ax)
+# plt.show()
 
 y_predict = model.predict(dtest)
-output = pd.DataFrame({'id': id_test, 'price_doc': y_predict})
-output.head()
 
-output.to_csv('xgbSub.csv', index=False)
+output = pd.DataFrame({'id': id_test, 'price_doc': y_predict})
+current_date = datetime.datetime.now()
+output.to_csv('outputs/xgbSub{0}-{1}-{2}.csv'.format(current_date.day,current_date.hour,current_date.minute), index=False)

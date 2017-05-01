@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn import preprocessing
-import matplotlib.pylplot as plt
+import matplotlib.pyplot as plt
 import seaborn as sns
 
 class RussianHouse:
@@ -11,24 +11,32 @@ class RussianHouse:
     def addFeatures(self, df):
 
         # replace NaN
-        df["state"].fillna(int(np.mean(df["state"])))
-        df["material"].fillna(int(np.mean(df["material"])))
-        df["full_sq"].fillna(np.mean(df["full_sq"]))
-        df["life_sq"].fillna(np.mean(df["life_sq"]))
+        # df["state"].fillna(int(np.mean(df["state"])))
+        # df["material"].fillna(int(np.mean(df["material"])))
+        # df["full_sq"].fillna(np.mean(df["full_sq"]))
+        # df["life_sq"].fillna(np.mean(df["life_sq"]))
+        #
+        # df["floor_diff"] = df["max_floor"] = df["floor"]
+        # df["living_square_diff"] = df["full_sq"] - df["life_sq"]
+        # df["livingwithoutkitchen_square_diff"] = df["life_sq"] - df["kitch_sq"]
+        pass
 
-        df["floor_diff"] = df["max_floor"] = df["floor"]
-        df["living_square_diff"] = df["full_sq"] - df["life_sq"]
-        df["livingwithoutkitchen_square_diff"] = df["life_sq"] - df["kitch_sq"]
 
     def addComplexFeatures(self, train, test, featureName):
-        train[featureName].fillna("", inplace = True)
-        test[featureName].fillna("", inplace = True)
+        #train[featureName].fillna("", inplace = True)
+        #test[featureName].fillna("", inplace = True)
         lb = preprocessing.LabelEncoder()
-        lb.fit(list(train[featureName].values) + list(test[featureName].values))
-        train[featureName] = lb.transform(train[featureName].values)
-        test[featureName] = lb.transform(test[featureName].values)
+        lb.fit(list(train[featureName].values))
+        train[featureName] = lb.transform(list(train[featureName].values))
+
+        lb = preprocessing.LabelEncoder()
+        lb.fit(list(test[featureName].values))
+        test[featureName] = lb.transform(list(test[featureName].values))
 
     def transform(self, train, test):
+
+        train.drop(["id","timestamp"],axis=1,inplace = True)
+        test.drop(["id", "timestamp"], axis=1, inplace=True)
 
         self.addFeatures(train)
         self.addFeatures(test)
