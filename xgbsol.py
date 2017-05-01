@@ -39,10 +39,10 @@ x_test = test#.drop(["id", "timestamp"], axis=1)
 
 
 xgb_params = {
-    'eta': 0.05,
-    'max_depth': 5,
-    'subsample': 0.7,
-    'colsample_bytree': 0.7,
+    'eta': 0.02,
+    'max_depth': 6,
+    'subsample': 0.8,
+    'colsample_bytree': 0.8,
     'objective': 'reg:linear',
     'eval_metric': 'rmse',
     'silent': 1
@@ -68,4 +68,4 @@ y_predict = model.predict(dtest)
 
 output = pd.DataFrame({'id': id_test, 'price_doc': y_predict})
 current_date = datetime.datetime.now()
-output.to_csv('outputs/xgbSub{0}-{1}-{2}.csv'.format(current_date.day,current_date.hour,current_date.minute), index=False)
+output.to_csv('outputs/xgbSub{0}-{1}-{2}-{3}.csv'.format(current_date.day,current_date.hour,current_date.minute,current_date.second), index=False)

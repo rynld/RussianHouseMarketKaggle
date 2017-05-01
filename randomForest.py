@@ -36,29 +36,36 @@ for c in x_test.columns:
         lbl.fit(list(x_test[c].values))
         x_test[c] = lbl.transform(list(x_test[c].values))
         # x_test.drop(c,axis=1,inplace=True)
+predictions = []
+subsample = [0.7,0.8,0.9,0.6]
+colsample = [0.7,0.8,0.9,0.6]
+for i in range(25):
+    xgb_params = {
+        "seed": 1234567*i*i + 689777,
+        'eta': 0.04,
+        'max_depth': (i%3)+5,
+        'subsample': subsample[i%4],
+        'colsample_bytree': colsample[i%4],
+        'objective': 'reg:linear',
+        'eval_metric': 'rmse',
+        'silent': 1
+    }
 
-xgb_params = {
-    'eta': 0.05,
-    'max_depth': 5,
-    'subsample': 0.7,
-    'colsample_bytree': 0.7,
-    'objective': 'reg:linear',
-    'eval_metric': 'rmse',
-    'silent': 1
-}
+    dtrain = xgb.DMatrix(x_train, y_train)
+    dtest = xgb.DMatrix(x_test)
 
-dtrain = xgb.DMatrix(x_train, y_train)
-dtest = xgb.DMatrix(x_test)
+    cv_output = xgb.cv(xgb_params, dtrain, num_boost_round=1000, early_stopping_rounds=20,
+        verbose_eval=50)
+    #cv_output[['train-rmse-mean', 'test-rmse-mean']].plot()
 
-cv_output = xgb.cv(xgb_params, dtrain, num_boost_round=1000, early_stopping_rounds=20,
-    verbose_eval=50, show_stdv=False)
-cv_output[['train-rmse-mean', 'test-rmse-mean']].plot()
+    num_boost_rounds = len(cv_output)
+    model = xgb.train(dict(xgb_params, silent=0), dtrain, num_boost_round= num_boost_rounds)
 
-num_boost_rounds = len(cv_output)
-model = xgb.train(dict(xgb_params, silent=0), dtrain, num_boost_round= num_boost_rounds)
+    y_predict = model.predict(dtest)
+    predictions.append(y_predict)
 
-y_predict = model.predict(dtest)
+predictions = np.mean(predictions,axis=0)
 output = pd.DataFrame({'id': id_test, 'price_doc': y_predict})
 
 current_date = datetime.datetime.now()
-output.to_csv('outputs/xgbSub{0}{1}:{2}.csv'.format(current_date.day,current_date.hour,current_date.minute), index=False)
+output.to_csv('outputs/xgbSub{0}-{1}-{2}-{3}.csv'.format(current_date.day,current_date.hour,current_date.minute,current_date.second), index=False)
