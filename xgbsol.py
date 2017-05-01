@@ -8,18 +8,24 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+from RussianHouse import RussianHouse
 from sklearn import model_selection, preprocessing
-import xgboost as xgb
+#import xgboost as xgb
 import datetime
 #now = datetime.datetime.now()
 
 train = pd.read_csv('../input/train.csv')
 test = pd.read_csv('../input/test.csv')
 macro = pd.read_csv('../input/macro.csv')
+# train = train.head(1000)
+# test = test.head(1000)
 id_test = test.id
 
-#It seems that this doen't improve anything.
+
+rh = RussianHouse()
+train,test = rh.transform(train,test)
+corr_20 = rh.corr_plot(train, 20, 'price_doc', 10, 10)
+exit()
 
 #train["timestamp"] = pd.to_datetime(train["timestamp"])
 #train["year"], train["month"], train["day"] = train["timestamp"].dt.year,train["timestamp"].dt.month,train["timestamp"].dt.day
@@ -31,21 +37,6 @@ y_train = train["price_doc"]
 x_train = train.drop(["id", "timestamp", "price_doc"], axis=1)
 x_test = test.drop(["id", "timestamp"], axis=1)
 
-# can't merge train with test because the kernel run for very long time
-
-for c in x_train.columns:
-    if x_train[c].dtype == 'object':
-        lbl = preprocessing.LabelEncoder()
-        lbl.fit(list(x_train[c].values))
-        x_train[c] = lbl.transform(list(x_train[c].values))
-        # x_train.drop(c,axis=1,inplace=True)
-
-for c in x_test.columns:
-    if x_test[c].dtype == 'object':
-        lbl = preprocessing.LabelEncoder()
-        lbl.fit(list(x_test[c].values))
-        x_test[c] = lbl.transform(list(x_test[c].values))
-        # x_test.drop(c,axis=1,inplace=True)
 
 xgb_params = {
     'eta': 0.05,
