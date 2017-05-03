@@ -2,6 +2,7 @@ import numpy as np
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
 
 class RussianHouse:
 
@@ -10,16 +11,21 @@ class RussianHouse:
 
     def addFeatures(self, df):
 
-        # replace NaN
+        # df["timestamp"] = pd.to_datetime(df["timestamp"])
+        # df["year"] = df["timestamp"].dt.year
+
+        #df = df.loc[df["year"] >= 2014]
+
         # df["state"].fillna(int(np.mean(df["state"])))
         # df["material"].fillna(int(np.mean(df["material"])))
         # df["full_sq"].fillna(np.mean(df["full_sq"]))
         # df["life_sq"].fillna(np.mean(df["life_sq"]))
         #
-        # df["floor_diff"] = df["max_floor"] = df["floor"]
+        # df["floor_diff"] = df["max_floor"] - df["floor"]
         # df["living_square_diff"] = df["full_sq"] - df["life_sq"]
         # df["livingwithoutkitchen_square_diff"] = df["life_sq"] - df["kitch_sq"]
         pass
+
 
 
     def addComplexFeatures(self, train, test, featureName):
@@ -35,11 +41,13 @@ class RussianHouse:
 
     def transform(self, train, test):
 
-        train.drop(["id","timestamp"],axis=1,inplace = True)
-        test.drop(["id", "timestamp"], axis=1, inplace=True)
+
 
         self.addFeatures(train)
         self.addFeatures(test)
+
+        train.drop(["id", "timestamp"], axis=1, inplace=True)
+        test.drop(["id", "timestamp"], axis=1, inplace=True)
 
         for x in train.columns:
             if train[x].dtype == 'object':

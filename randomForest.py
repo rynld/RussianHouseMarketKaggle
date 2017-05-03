@@ -39,6 +39,7 @@ for c in x_test.columns:
 predictions = []
 subsample = [0.7,0.8,0.9,0.6]
 colsample = [0.7,0.8,0.9,0.6]
+
 for i in range(25):
     xgb_params = {
         "seed": 1234567*i*i + 689777,

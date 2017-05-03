@@ -39,26 +39,30 @@ x_test = test#.drop(["id", "timestamp"], axis=1)
 
 
 xgb_params = {
-    'eta': 0.02,
-    'max_depth': 6,
-    'subsample': 0.8,
-    'colsample_bytree': 0.8,
+    'eta': 0.05,
+    'max_depth': 5,
+    'subsample': 0.7,
+    'colsample_bytree': 0.7,
     'objective': 'reg:linear',
     'eval_metric': 'rmse',
     'silent': 1
 }
 
-dtrain = xgb.DMatrix(x_train, y_train)
+total = int(len(train))
+val_total = int(len(train)*0.25)
+
+dtrain = xgb.DMatrix(x_train[:total - val_total], y_train[:total - val_total])
+dval = xgb.DMatrix(x_train[- val_total:], y_train[-val_total:])
 dtest = xgb.DMatrix(x_test)
 
-cv_output = xgb.cv(xgb_params, dtrain, num_boost_round=1000, early_stopping_rounds=20,
-    verbose_eval=50)
+partial_model = xgb.train(xgb_params, dtrain,evals=[(dtrain,"train"),(dval,"val")], num_boost_round=100, early_stopping_rounds=20,
+    verbose_eval=20)
 
 #cv_output[['train-rmse-mean', 'test-rmse-mean']].plot()
 #plt.show()
 
-num_boost_rounds = len(cv_output)
-model = xgb.train(dict(xgb_params, silent=0), dtrain, num_boost_round= num_boost_rounds)
+num_boost_rounds = partial_model.best_iteration
+model = xgb.train(dict(xgb_params), dtrain, num_boost_round= num_boost_rounds)
 
 # fig, ax = plt.subplots(1, 1, figsize=(8, 13))
 # xgb.plot_importance(model, max_num_features=50, height=0.5, ax=ax)
