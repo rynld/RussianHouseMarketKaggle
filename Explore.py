@@ -28,9 +28,17 @@ def distribucion_price(df):
 # train_df["year"] = train_df["timestamp"].dt.year
 # train_df["count"] = 1
 
-a = [[1,1,1],[2,2,2]]
+vr = []
 
-print(np.mean(a,axis=0))
+for x in train_df.columns:
+    if train_df[x].dtypes == 'float':
+        vr.append((np.var(train_df[x]),x))
+
+vr.sort()
+print(vr[:20])
+print(vr[-20:])
+
+
 
 
 

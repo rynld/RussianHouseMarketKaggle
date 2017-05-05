@@ -1,5 +1,7 @@
 import numpy as np
 from sklearn import preprocessing
+from sklearn.preprocessing import Imputer
+from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -11,21 +13,32 @@ class RussianHouse:
 
     def addFeatures(self, df):
 
-        # df["timestamp"] = pd.to_datetime(df["timestamp"])
-        # df["year"] = df["timestamp"].dt.year
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+        df["year"] = df["timestamp"].dt.year
+        df["month"] = df["timestamp"].dt.month
+        df["day"] = df["timestamp"].dt.day
 
-        #df = df.loc[df["year"] >= 2014]
 
         # df["state"].fillna(int(np.mean(df["state"])))
         # df["material"].fillna(int(np.mean(df["material"])))
         # df["full_sq"].fillna(np.mean(df["full_sq"]))
         # df["life_sq"].fillna(np.mean(df["life_sq"]))
-        #
-        # df["floor_diff"] = df["max_floor"] - df["floor"]
-        # df["living_square_diff"] = df["full_sq"] - df["life_sq"]
-        # df["livingwithoutkitchen_square_diff"] = df["life_sq"] - df["kitch_sq"]
-        pass
 
+        df["floor_diff"] = df["max_floor"] - df["floor"]
+        df["living_square_diff"] = df["full_sq"] - df["life_sq"]
+        df["livingwithoutkitchen_square_diff"] = df["life_sq"] - df["kitch_sq"]
+        df["square_per_room"] = df["life_sq"] / df["num_room"]
+        df["year_diff"] = 2016 - df["year"]
+
+
+
+    def reduceDimension(self, train, test):
+
+        imp = Imputer()
+        pca = PCA(n_components=50)
+        pca.fit(train)
+        train = pca.transform(train)
+        test = pca.transform(test)
 
 
     def addComplexFeatures(self, train, test, featureName):
@@ -41,6 +54,11 @@ class RussianHouse:
 
     def transform(self, train, test):
 
+        train["life_sq"].dropna(inplace=True)
+        train["num_room"].dropna(inplace=True)
+        train["material"].dropna(inplace=True)
+        train["price_doc"] = np.log1p(train["price_doc"].values)
+
 
 
         self.addFeatures(train)
@@ -48,6 +66,8 @@ class RussianHouse:
 
         train.drop(["id", "timestamp"], axis=1, inplace=True)
         test.drop(["id", "timestamp"], axis=1, inplace=True)
+
+
 
         for x in train.columns:
             if train[x].dtype == 'object':
@@ -61,6 +81,9 @@ class RussianHouse:
             if test[x].dtypes == "object":
                 test.drop(x, axis=1, inplace=True)
 
+        self.reduceDimension(train,test)
+        print(np.shape(train))
+        print(np.shape(test))
         return train,test
 
     def corr_plot(self, dataframe, top_n, target, fig_x, fig_y):
