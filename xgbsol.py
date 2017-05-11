@@ -19,7 +19,6 @@ test = pd.read_csv('input/test.csv')
 macro = pd.read_csv('input/macro.csv')
 
 id_test = test["id"]
-
 rh = RussianHouse()
 train,test = rh.transform(train,test)
 
@@ -32,9 +31,10 @@ x_test = test#.drop(["id", "timestamp"], axis=1)
 
 
 xgb_params = {
-    'eta': 0.05,
-    'max_depth': 5,
-    'subsample': 0.8,
+    "seed":0,
+    'eta': 0.03,
+    'max_depth': 4,
+    'subsample': 0.3,
     'colsample_bytree': 0.7,
     'objective': 'reg:linear',
     'eval_metric': 'rmse',
@@ -42,7 +42,7 @@ xgb_params = {
 }
 
 total = int(len(train))
-val_total = int(len(train)*0.25)
+val_total = int(len(train)*0.33)
 
 dall = xgb.DMatrix(x_train, y_train)
 dtrain = xgb.DMatrix(x_train[:total - val_total], y_train[:total - val_total])
@@ -58,16 +58,25 @@ partial_model = xgb.train(xgb_params, dtrain,evals=[(dtrain,"train"),(dval,"val"
 num_boost_rounds = partial_model.best_iteration
 model = xgb.train(dict(xgb_params), dall, num_boost_round= num_boost_rounds)
 
-# fig, ax = plt.subplots(1, 1, figsize=(8, 13))
-# xgb.plot_importance(model, max_num_features=50, height=0.5, ax=ax)
-# plt.show()
+# importance = model.get_fscore()
+# importance = sorted(importance.items(), key=operator.itemgetter(1))[-20:]
+#
+# df = pd.DataFrame(importance, columns=['feature', 'fscore'])
+# df['fscore'] = df['fscore'] / df['fscore'].sum()
+#
+# plt.figure()
+# df.plot()
+# df.plot(kind='barh', x='feature', y='fscore', legend=False, figsize=(6, 10))
+# plt.title('XGBoost Feature Importance')
+# plt.xlabel('relative importance')
+# plt.gcf().savefig('feature_importance_xgb.png')
 
 # importance = model.get_fscore()
 # importance = sorted(importance.items(), key=operator.itemgetter(1))
 # print([ x for x,y in importance if y < 3])
 
 y_predict = model.predict(dtest)
-y_predict = np.exp(y_predict) - 1
+#y_predict = np.exp(y_predict) - 1
 output = pd.DataFrame({'id': id_test, 'price_doc': y_predict})
 current_date = datetime.datetime.now()
 output.to_csv('outputs/xgbSub{0}-{1}-{2}-{3}.csv'.format(current_date.day,current_date.hour,current_date.minute,current_date.second), index=False)

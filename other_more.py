@@ -14,7 +14,7 @@ df_macro = pd.read_csv("input/macro.csv", parse_dates=['timestamp'], usecols=['t
 
 # ylog will be log(1+y), as suggested by https://github.com/dmlc/xgboost/issues/446#issuecomment-135555130
 ylog_train_all = np.log1p(df_train['price_doc'].values)
-ylog_train_all = df_train['price_doc'].values
+ylog_train_all = np.log(df_train['price_doc'].values)
 id_test = df_test['id']
 
 df_train.drop(['id', 'price_doc'], axis=1, inplace=True)

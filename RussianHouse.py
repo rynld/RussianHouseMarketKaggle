@@ -13,10 +13,10 @@ class RussianHouse:
 
     def addFeatures(self, df):
 
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df["year"] = df["timestamp"].dt.year
-        df["month"] = df["timestamp"].dt.month
-        df["day"] = df["timestamp"].dt.day
+        # df["timestamp"] = pd.to_datetime(df["timestamp"])
+        # df["year"] = df["timestamp"].dt.year
+        # df["month"] = df["timestamp"].dt.month
+        # df["day"] = df["timestamp"].dt.day
 
 
         # df["state"].fillna(int(np.mean(df["state"])))
@@ -24,20 +24,33 @@ class RussianHouse:
         # df["full_sq"].fillna(np.mean(df["full_sq"]))
         # df["life_sq"].fillna(np.mean(df["life_sq"]))
 
-        df["floor_diff"] = df["max_floor"] - df["floor"]
-        df["living_square_diff"] = df["full_sq"] - df["life_sq"]
-        df["livingwithoutkitchen_square_diff"] = df["life_sq"] - df["kitch_sq"]
-        df["square_per_room"] = df["life_sq"] / df["num_room"]
-        df["year_diff"] = 2016 - df["year"]
+        # df["floor_diff"] = df["max_floor"] - df["floor"]
+        # df["living_square_diff"] = df["full_sq"] - df["life_sq"]
+        # df["livingwithoutkitchen_square_diff"] = df["life_sq"] - df["kitch_sq"]
+        # df["square_per_room"] = df["life_sq"] / df["num_room"]
+        # df["year_diff"] = 2016 - df["year"]
+        # df["full_sq_log"] = np.log1p(df["full_sq"])
+        # df["floor_log"] = np.log1p(df["floor"])
+        # df["life_sq_log"] = np.log1p(df["life_sq"])
+        # df["full_sq_log"] = np.log1p(df["full_sq"])
+        # df["num_room_log"] = np.log1p(df["num_room"])
+
+        pass
 
 
 
     def reduceDimension(self, train, test):
 
-        imp = Imputer()
+        imp = Imputer(strategy="mean", axis=0)
+        train = imp.fit_transform(train)
+        test= imp.fit_transform(test)
+
         pca = PCA(n_components=50)
         pca.fit(train)
         train = pca.transform(train)
+
+        pca = PCA(n_components=50)
+        pca.fit(test)
         test = pca.transform(test)
 
 
@@ -54,13 +67,11 @@ class RussianHouse:
 
     def transform(self, train, test):
 
-        train["life_sq"].dropna(inplace=True)
-        train["num_room"].dropna(inplace=True)
-        train["material"].dropna(inplace=True)
-        train["price_doc"] = np.log1p(train["price_doc"].values)
-
-
-
+        # train["life_sq"].dropna(inplace=True)
+        # train["num_room"].dropna(inplace=True)
+        # train["material"].dropna(inplace=True)
+        # train["price_doc"] = np.log1p(train["price_doc"].values)
+        # price = train["price_doc"]
         self.addFeatures(train)
         self.addFeatures(test)
 
@@ -81,9 +92,11 @@ class RussianHouse:
             if test[x].dtypes == "object":
                 test.drop(x, axis=1, inplace=True)
 
-        self.reduceDimension(train,test)
-        print(np.shape(train))
-        print(np.shape(test))
+        # train.drop(["price_doc"],inplace=True,axis=1)
+        # self.reduceDimension(train,test)
+        # train["price_doc"] = price
+
+
         return train,test
 
     def corr_plot(self, dataframe, top_n, target, fig_x, fig_y):
