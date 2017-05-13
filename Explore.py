@@ -9,36 +9,19 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import make_scorer
 import matplotlib.pyplot as plt
+from Pred_na import *
 
 train_df = pd.read_csv("input/train.csv")
 test_df = pd.read_csv("input/test.csv")
 
 #train_df = train_df.head(100)
 #test_df = test_df.head(100)
-def distribucion_price(df):
+def distribucion_price(df, variable):
 
-    price = df["price_doc"].values
-    print(price)
-    sns.distplot(price)
+    df[variable].dropna(inplace = True)
+    price = df[variable].values
+
+    sns.distplot(price,)
     plt.show()
 
-#distribucion_price(train_df)
-
-# train_df["timestamp"] = pd.to_datetime(train_df["timestamp"])
-# train_df["year"] = train_df["timestamp"].dt.year
-# train_df["count"] = 1
-
-vr = []
-
-for x in train_df.columns:
-    if train_df[x].dtypes == 'float':
-        vr.append((np.var(train_df[x]),x))
-
-vr.sort()
-print(vr[:20])
-print(vr[-20:])
-
-
-
-
-
+distribucion_price(train_df, "life_sq")

@@ -6,7 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from Pred_na import predict_missing_variable
-
+from sklearn.preprocessing import LabelBinarizer
 from sklearn import model_selection, preprocessing
 import xgboost as xgb
 import datetime
@@ -20,33 +20,57 @@ id_test = test.id
 # train["full_sq_log"] = np.log1p(train["full_sq"])
 # test["full_sq_log"] = np.log1p(test["full_sq"])
 
+
+train["life_sq"] = predict_missing_variable(train.drop(["id","timestamp"],axis=1),"life_sq")
+train["full_sq"] = predict_missing_variable(train.drop(["id","timestamp"],axis=1),"full_sq")
+train["floor"] = predict_missing_variable(train.drop(["id","timestamp"],axis=1),"floor")
+
+
+def transform_labels(x_train, x_test):
+
+    # for c in x_train.columns:
+    #     if x_train[c].dtype == 'object':
+    #         x_train[c].fillna("",inplace = True)
+    #         x_test[c].fillna("", inplace=True)
+    #
+    #         lb = LabelBinarizer()
+    #         lb.fit(list(x_train[c].values) + list(x_test[c].values))
+    #         xtrn = lb.transform(list(x_train[c].values))
+    #         xtst = lb.transform(list(x_test[c].values))
+    #
+    #         x_train = pd.DataFrame(pd.concat([x_train,pd.DataFrame(xtrn,columns=[c + "_" + str(i)for i in range(np.shape(xtrn)[1])])],axis=1))
+    #         x_test = pd.DataFrame(pd.concat([x_test, pd.DataFrame(xtst,columns=[c + "_" + str(i)for i in range(np.shape(xtst)[1])])], axis=1))
+    #
+    #         x_train.drop(c,axis=1,inplace=True)
+    #         x_test.drop(c,axis=1,inplace=True)
+    #
+    # return x_train, x_test
+
+
+    for c in x_train.columns:
+        if x_train[c].dtype == 'object':
+            lbl = preprocessing.LabelEncoder()
+            lbl.fit(list(x_train[c].values))
+            x_train[c] = lbl.transform(list(x_train[c].values))
+            # x_train.drop(c,axis=1,inplace=True)
+
+    for c in x_test.columns:
+        if x_test[c].dtype == 'object':
+            lbl = preprocessing.LabelEncoder()
+            lbl.fit(list(x_test[c].values))
+            x_test[c] = lbl.transform(list(x_test[c].values))
+            # x_test.drop(c,axis=1,inplace=True)
+    return x_train, x_test
+
+
 y_train = train["price_doc"]
 x_train = train.drop(["id", "timestamp", "price_doc"], axis=1)
 x_test = test.drop(["id", "timestamp"], axis=1)
 
 
+x_train, x_test = transform_labels(x_train, x_test)
 
-for c in x_train.columns:
-    if x_train[c].dtype == 'object':
-        lbl = preprocessing.LabelEncoder()
-        lbl.fit(list(x_train[c].values))
-        x_train[c] = lbl.transform(list(x_train[c].values))
-        # x_train.drop(c,axis=1,inplace=True)
-
-for c in x_test.columns:
-    if x_test[c].dtype == 'object':
-        lbl = preprocessing.LabelEncoder()
-        lbl.fit(list(x_test[c].values))
-        x_test[c] = lbl.transform(list(x_test[c].values))
-        # x_test.drop(c,axis=1,inplace=True)
 predictions = []
-subsample = [0.7,0.8,0.9,0.6]
-colsample = [0.7,0.8,0.9,0.6]
-
-
-predict_missing_variable(train,"full_sq")
-exit()
-
 
 xgb_params = {
 
